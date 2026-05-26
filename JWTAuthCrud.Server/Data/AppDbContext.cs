@@ -34,8 +34,9 @@ namespace ImelApp.Server.Data
                     .HasConversion<int>()
                     .HasDefaultValue(UserRole.User);
 
+                // Ovdje smo promijenili GETUTCDATE() u Postgresovu funkciju za svaki slučaj
                 entity.Property(u => u.CreatedAt)
-                    .HasDefaultValueSql("GETUTCDATE()");
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                 entity.Property(u => u.FailedLoginAttempts)
                     .HasDefaultValue(0);
@@ -44,9 +45,9 @@ namespace ImelApp.Server.Data
                 entity.HasData(new User
                 {
                     Id = 1,
-                    Username = "admin", //USERNAME ZA TESTNI LOGIN: admin
+                    Username = "admin",
                     Email = "admin@example.com",
-                    PasswordHash = "$2a$11$hE/qRHSPywOYztBMrEUzKODkZA6KFSlcBB9CfMYuPSLcL5/2Mt4Ra", // PASSWORD ZA TESTNI LOGIN: 123123
+                    PasswordHash = "$2a$11$hE/qRHSPywOYztBMrEUzKODkZA6KFSlcBB9CfMYuPSLcL5/2Mt4Ra",
                     IsActive = true,
                     Role = UserRole.Admin,
                     CreatedAt = new DateTime(2024, 1, 1, 12, 0, 0, DateTimeKind.Utc)
