@@ -8,14 +8,14 @@ function AddUser({ title, currentUser, onClose, onSuccess }) {
     const [formData, setFormData] = useState({
         username: '', email: '', password: '', repeatPassword: '', isActive: true, role: ''
     });
-    // Prati koja su polja bila fokusirana (za prikaz validacije)
+    // Tracks which fields have been touched (for displaying validation messages)
     const [touched, setTouched] = useState({});
 
-    // Prikaz lozinke / ponovljene lozinke
+    // Toggle visibility for password and confirm password fields
     const [showPassword, setShowPassword] = useState(false);
     const [showRepeatPassword, setShowRepeatPassword] = useState(false);
 
-    // Ako postoji korisnik (ako je editovanje u pitanju), postavi njegove podatke (osim lozinke)
+    // If user exists (editing mode), populate form with user data (password fields remain empty for security)
     useEffect(() => {
         if (currentUser) {
             const role = currentUser.role === "Admin" ? "1" : (currentUser.role === "User" ? "0" : "");
@@ -23,20 +23,20 @@ function AddUser({ title, currentUser, onClose, onSuccess }) {
             setFormData({
                 username: currentUser.username || '',
                 email: currentUser.email || '',
-                password: '', // ostaje prazno
-                repeatPassword: '', // ostaje prazno
+                password: '', // remains empty for security
+                repeatPassword: '', // remains empty for security
                 isActive: currentUser.isActive ?? true,
                 role: role,
             });
         }
     }, [currentUser]);
 
-    // Ako se promijeni korisnik, resetuj formu
+    // Handle input field changes and update form state
     const handleChange = (e) => {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    // Validacija polja u formi
+    // Validation rules for form fields
     const validate = {
         username: (formData.username?.length ?? 0) >= 3,
         email: /\S+@\S+\.\S+/.test(formData.email),
@@ -45,56 +45,56 @@ function AddUser({ title, currentUser, onClose, onSuccess }) {
         role: (formData.role?.length ?? 0) > 0
     };
 
-    // Prikaz greške ili uspjeha
+    // Helper functions to determine error or success state for display
     const showError = (field) => touched[field] && !validate[field];
     const showSuccess = (field) => touched[field] && validate[field];
 
-    // Prikaz poruke o grešci ili uspjehu
+    // Get validation message based on field state
     const getMessage = (field) => {
         if (!touched[field]) return '';
         if (!validate[field]) {
             switch (field) {
-                case 'username': return 'Min. 3 karaktera';
-                case 'email': return 'Neispravan email';
-                case 'password': return 'Min. 6 karaktera';
-                case 'repeatPassword': return 'Lozinke se ne poklapaju';
-                case 'role': return 'Morate odabrati rolu';
+                case 'username': return 'Minimum 3 characters';
+                case 'email': return 'Invalid email format';
+                case 'password': return 'Minimum 6 characters';
+                case 'repeatPassword': return 'Passwords do not match';
+                case 'role': return 'You must select a role';
                 default: return '';
             }
         }
         return '';
     };
 
-    // Funkcija za slanje forme - submit
+    // Handle form submission - validates and sends user data to API
     const handleSubmit = async (e) => {
         const token = sessionStorage.getItem('token');
 
         e.preventDefault();
         setTouched({ username: true, email: true, password: true, repeatPassword: true, role: true });
 
-        // Validacija: ako dodaješ novog korisnika, sve mora biti popunjeno
+        // Validation: all fields must be valid before submission
         if (!Object.values(validate).every(Boolean)) {
-            toast.error("Pokušaj dodavanja korisnika nije uspio. Provjerite polja!");
+            toast.error("Failed to add user. Please check all fields!");
             return;
         }
 
         try {
-            // formiranje axiosa za slanje podataka
+            // Prepare API endpoint URL based on whether creating or editing user
             const url = currentUser
                 ? `${import.meta.env.VITE_API_URL}/edit/${currentUser.id}`
                 : `${import.meta.env.VITE_API_URL}/register`;
 
-            // Ako je korisnik već učitan, koristi PUT metodu, inače POST
+            // Use PUT for editing existing user, POST for creating new user
             const method = currentUser ? 'put' : 'post';
 
-            // Početni podaci koji se uvijek šalju
+            // Base data sent in all requests
             const data = {
                 username: formData.username,
                 email: formData.email,
                 isActive: formData.isActive,
             };
 
-            // Dodaj samo ako je nešto uneseno
+            // Only include password and role if they are provided
             if (formData.password?.trim()) {
                 data.password = formData.password;
             }
@@ -103,7 +103,7 @@ function AddUser({ title, currentUser, onClose, onSuccess }) {
                 data.role = formData.role;
             }
 
-            // axios poziv formiran
+            // Make API request with prepared data and authentication token
             const res = await axios[method](url, data, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -111,14 +111,14 @@ function AddUser({ title, currentUser, onClose, onSuccess }) {
             });
 
             if (res.status === 200 || res.status === 201) {
-                toast.success('Korisnik uspješno ' + (currentUser ? 'ažuriran' : 'dodajn') + '. Zatvaranje modala...');
+                toast.success('User successfully ' + (currentUser ? 'updated' : 'added') + '. Closing modal...');
                 onSuccess();
                 setTimeout(onClose, 1500);
             } else {
-                toast.error(res.data?.message || 'Greška pri dodavanju/izmjeni korisnika.');
+                toast.error(res.data?.message || 'Error adding/updating user.');
             }
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Server greška.');
+            toast.error(err.response?.data?.message || 'Server error.');
         }
     };
 
@@ -130,13 +130,15 @@ function AddUser({ title, currentUser, onClose, onSuccess }) {
                 <h2 className="text-center mb-4">{title}</h2>
                 <form onSubmit={handleSubmit} className="text-end" noValidate>
 
-                    { /* prikaz polja - iterira i renderuje svako */}
+                    {/* Render form fields dynamically - username, email, password, and confirm password */}
                     {['username', 'email', 'password', 'repeatPassword'].map((field) => {
 
-                        // Ako je korisnik već učitan, ne prikazuj polje za lozinku
+                        // Note: Password fields are shown for both create and edit modes
+                        // User can update password without providing current password
                         // if (currentUser && field === 'password') return null;
                         // if (currentUser && field === 'repeatPassword') return null;
 
+                        // Determine if field is password type and manage visibility toggle
                         const isPassword = field === 'password' || field === 'repeatPassword';
                         const show = field === 'password' ? showPassword : field === 'repeatPassword' ? showRepeatPassword : false;
                         const toggleShow = () => {
@@ -147,7 +149,7 @@ function AddUser({ title, currentUser, onClose, onSuccess }) {
                         return (
                             <div className="mb-3" key={field}>
                                 <div className="d-flex justify-content-between align-items-center mb-1">
-                                    <label className="form-label mb-0 text-capitalize">{field === 'repeatPassword' ? 'Ponovi lozinku' : field}</label>
+                                    <label className="form-label mb-0 text-capitalize">{field === 'repeatPassword' ? 'Repeat password ' : field}</label>
                                     <small
                                         className={`ms-auto text-end ${showError(field) ? 'text-danger' : showSuccess(field) ? 'text-success' : 'text-muted'}`}
                                         style={{ minHeight: '1rem', fontSize: '0.8rem' }}
@@ -174,7 +176,7 @@ function AddUser({ title, currentUser, onClose, onSuccess }) {
                         );
                     })}
 
-                    {/* Role input */}
+                    {/* Role selection dropdown */}
                     <div className="mb-3 text-start">
                         <label className="form-label">Rola</label>
                         <select
@@ -184,7 +186,7 @@ function AddUser({ title, currentUser, onClose, onSuccess }) {
                             onChange={handleChange}
                             onBlur={() => setTouched({ ...touched, role: true })}
                         >
-                            <option value="">Izaberite rolu</option>
+                            <option value="">Choose user role</option>
                             <option value="1">Admin</option>
                             <option value="0">User</option>
                         </select>
@@ -193,7 +195,7 @@ function AddUser({ title, currentUser, onClose, onSuccess }) {
                         </small>
                     </div>
 
-                    {/* isActive toggle */}
+                    {/* User status toggle - active or inactive */}
                     <div className="form-check mb-5 text-start form-switch">
                         <input
                             type="checkbox"
@@ -204,17 +206,17 @@ function AddUser({ title, currentUser, onClose, onSuccess }) {
                             onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
                         />
                         <label className="form-check-label" htmlFor="isActive">
-                            {formData.isActive ? 'Korisnik će biti AKTIVAN' : 'Korisnik će biti NEAKTIVAN'}
+                            {formData.isActive ? 'User will be ACTIVE' : 'User will be INACTIVE'}
                         </label>
                     </div>
 
                     <div className="d-flex justify-content-between align-items-center">
-                            <button type="button" className="btn btn-secondary" onClick={onClose}>Zatvori</button>
-                            <button type="submit" className="btn btn-success text-end">{currentUser ? 'Spremi promjene' : 'Dodaj korisnika'}</button>
+                            <button type="button" className="btn btn-secondary" onClick={onClose}>Close</button>
+                            <button type="submit" className="btn btn-success text-end">{currentUser ? 'Save Changes' : 'Add User'}</button>
                     </div>
                 </form>
 
-                {/* tost notifikacija */}
+                {/* Toast notification container for user feedback */}
                 <ToastContainer
                     position="top-right"
                     autoClose={2000}

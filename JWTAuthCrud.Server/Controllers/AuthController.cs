@@ -31,34 +31,34 @@ public class AuthController : ControllerBase
 
         if (user == null)
         {
-            return Unauthorized(new { message = "Pogrešno korisničko ime ili lozinka." });
+            return Unauthorized(new { message = "Incorrect username or password." });
         }
 
-        // Provjera da li je korisnik blokiran
+        // Check if user is locked out
         if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.UtcNow)
         {
             var timeLeft = user.LockoutEnd.Value - DateTime.UtcNow;
-            return Unauthorized(new { message = $"Korisnik je privremeno blokiran. Pokušajte ponovo za {timeLeft.Minutes} minuta." });
+            return Unauthorized(new { message = $"User is temporarily locked out. Try again in {timeLeft.Minutes} minutes." });
         }
 
-        // Provjeri lozinku
+        // Verify password
         if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
-            // Povećaj broj pokušaja prijave
+            // Increment failed login attempts
             user.FailedLoginAttempts++;
 
-            // Ako broj pokušaja dostigne 3, blokiraj korisnika
+            // If failed attempts reach 3, lock the user
             if (user.FailedLoginAttempts >= 3)
             {
-                user.LockoutEnd = DateTime.UtcNow.AddMinutes(5); // Blokira korisnika na 5 minuta
+                user.LockoutEnd = DateTime.UtcNow.AddMinutes(5); // Lock user for 5 minutes
             }
 
             await _context.SaveChangesAsync();
 
-            return Unauthorized(new { message = "Pogrešno korisničko ime ili lozinka." });
+            return Unauthorized(new { message = "Incorrect username or password." });
         }
 
-        // Resetuj broj neuspjelih pokušaja kada je prijava uspješna
+        // Failure count after successfull login
         user.FailedLoginAttempts = 0;
         await _context.SaveChangesAsync();
 
@@ -104,11 +104,11 @@ public class AuthController : ControllerBase
     [HttpPost("logout")]
     public IActionResult Logout()
     {
-        // Token je u sessionStorage, ovdje se samo žalje potvrda
-        return Ok(new { message = "Korisnik je uspešno izlogovan." });
+        // Token is in sessionStorage, here we just send confirmation
+        return Ok(new { message = "User successfully logged out." });
     }
 
-    // Brisanje korisnika po ID-u (samo admin)
+    // Delete user by ID (admin only)
     [Authorize(Roles = "Admin")]
     [HttpDelete("delete/{id}")]
     public async Task<IActionResult> DeleteUser(int id)
@@ -117,56 +117,56 @@ public class AuthController : ControllerBase
 
         if (user == null)
         {
-            return NotFound(new { message = "Korisnik nije pronađen." });
+            return NotFound(new { message = "User not found." });
         }
 
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();
 
-        return Ok(new { message = "Korisnik uspješno obrisan." });
+        return Ok(new { message = "User deleted successfully." });
     }
 
-    // Registracija novog korisnika
+    // Register new user
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        // Provjera da li korisnik već postoji po username ili emailu
+        // Check if user already exists by username or email
         var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username || u.Email == request.Email);
         if (existingUser != null)
         {
-            return BadRequest(new { message = "Korisnik sa ovim korisničkim imenom ili emailom već postoji." });
+            return BadRequest(new { message = "User with this username or email already exists." });
         }
 
-        // Provjeri da li je rola validna
+        // Check if role is valid
         if (!Enum.IsDefined(typeof(UserRole), request.Role))
         {
-            return BadRequest(new { message = "Neispravna rola." });
+            return BadRequest(new { message = "Invalid role." });
         }
 
-        // Ako rola nije poslana, postavi je na UserRole.User (0)
-        var userRole = (UserRole)request.Role; // Pretvaramo int u UserRole
+        // If role is not provided, set it to UserRole.User (0)
+        var userRole = (UserRole)request.Role; // Convert int to UserRole
 
-        // Hash lozinke
+        // Hash password
         var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-        // Kreiraj novog korisnika
+        // Create new user
         var newUser = new User
         {
             Username = request.Username,
             Email = request.Email,
             PasswordHash = hashedPassword,
             IsActive = request.IsActive,
-            Role = userRole // Postavljanje role korisnika dafault na user - samo admin može dati rolu admin!
+            Role = userRole // Set user role default to user - only admin can grant admin role!
         };
 
         _context.Users.Add(newUser);
         await _context.SaveChangesAsync();
 
-        return Ok(new { message = "Korisnik uspješno registrovan." });
+        return Ok(new { message = "User successfully registered." });
     }
 
 
-    // Vraća samo korisničko ime prijavljenog korisnika
+    // Returns only the username of the logged-in user
     [Authorize]
     [HttpGet("user")]
     public IActionResult GetUserData()
@@ -175,14 +175,14 @@ public class AuthController : ControllerBase
 
         if (userIdClaim == null)
         {
-            return Unauthorized(new { message = "Korisnik nije autentifikovan." });
+            return Unauthorized(new { message = "User is not authenticated." });
         }
 
         var user = _context.Users.FirstOrDefault(u => u.Id.ToString() == userIdClaim);
 
         if (user == null)
         {
-            return Unauthorized(new { message = "Korisnik nije pronađen." });
+            return Unauthorized(new { message = "User not found." });
         }
 
         return Ok(new { username = user.Username, email = user.Email, role = user.Role.ToString(),  created = user.CreatedAt, active = user.IsActive.ToString() });
@@ -198,14 +198,14 @@ public class AuthController : ControllerBase
 
         if (userIdClaim == null)
         {
-            return Unauthorized(new { message = "Korisnik nije autentifikovan." });
+            return Unauthorized(new { message = "User is not authenticated." });
         }
 
         var user = _context.Users.FirstOrDefault(u => u.Id.ToString() == userIdClaim);
 
         if (user == null)
         {
-            return NotFound(new { message = "Korisnik nije pronađen." });
+            return NotFound(new { message = "User not found." });
         }
 
         return Ok(new { username = user.Username });
@@ -216,16 +216,36 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> EditUser(int id, [FromBody] EditUserRequest request)
     {
 
-        Console.WriteLine($"Stigao register zahtjev: Username={request.Username}, Email={request.Email}, Role={request.Role}");
+        Console.WriteLine($"Register request received: Username={request.Username}, Email={request.Email}, Role={request.Role}");
 
-        // Pronađi korisnika
+        // Find user
         var user = await _context.Users.FindAsync(id);
         if (user == null)
         {
-            return NotFound(new { message = "Korisnik nije pronađen." });
+            return NotFound(new { message = "User not found." });
         }
 
-        // Ažuriranje polja ako su poslana
+        // Check if new username already exists (if being changed)
+        if (!string.IsNullOrEmpty(request.Username) && request.Username != user.Username)
+        {
+            var existingUsername = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+            if (existingUsername != null)
+            {
+                return BadRequest(new { message = "Username already taken." });
+            }
+        }
+
+        // Check if new email already exists (if being changed)
+        if (!string.IsNullOrEmpty(request.Email) && request.Email != user.Email)
+        {
+            var existingEmail = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            if (existingEmail != null)
+            {
+                return BadRequest(new { message = "Email already in use." });
+            }
+        }
+
+        // Update fields if provided
         if (!string.IsNullOrEmpty(request.Username))
             user.Username = request.Username;
 
@@ -233,7 +253,7 @@ public class AuthController : ControllerBase
             user.Email = request.Email;
 
         if (!string.IsNullOrEmpty(request.Password))
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);  // Novi hash lozinke
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
         if (request.IsActive.HasValue)
             user.IsActive = request.IsActive.Value;
@@ -241,17 +261,17 @@ public class AuthController : ControllerBase
         if (request.Role.HasValue && Enum.IsDefined(typeof(UserRole), request.Role))
             user.Role = (UserRole)request.Role.Value;
 
-        // Sačuvaj promene
+        // Save changes
         await _context.SaveChangesAsync();
 
-        return Ok(new { message = "Korisnik je uspešno ažuriran." });
+        return Ok(new { message = "User successfully updated." });
     }
 
 
 
 }
 
-// DTO - Model za zahtjev za login
+// DTO - Model for login request
 public class LoginRequest
 {
     public required string Username { get; set; }
@@ -259,7 +279,7 @@ public class LoginRequest
 }
 
 
-// DTO - Model za registraciju korisnika
+// DTO - Model for user registration
 public class RegisterRequest
 {
     public required string Username { get; set; }
@@ -270,7 +290,7 @@ public class RegisterRequest
 
 }
 
-// DTO - Model za editovanje korisnika
+// DTO - Model for editing user
 public class EditUserRequest
 {
     public string? Username { get; set; }

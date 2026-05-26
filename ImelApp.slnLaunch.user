@@ -3,11 +3,11 @@
     "Name": "New Profile",
     "Projects": [
       {
-        "Path": "ImelApp.Server\\ImelApp.Server.csproj",
+        "Path": "ImelApp.Server\\JWTAuthCrud.Server.csproj",
         "Action": "Start"
       },
       {
-        "Path": "imelapp.client\\imelapp.client.esproj",
+        "Path": "imelapp.client\\jwt-auth-crud.client.esproj",
         "Action": "Start",
         "DebugTarget": "localhost (Chrome)"
       }

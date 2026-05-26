@@ -4,7 +4,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-function Register({ title = "Registracija" }) {
+function Register({ title = "Registration" }) {
     const [formData, setFormData] = useState({
         username: '', email: '', password: '', repeatPassword: '', isActive: true
     });
@@ -31,10 +31,10 @@ function Register({ title = "Registracija" }) {
         if (!touched[field]) return '';
         if (!validate[field]) {
             switch (field) {
-                case 'username': return 'Min. 3 karaktera';
-                case 'email': return 'Neispravan email';
-                case 'password': return 'Min. 6 karaktera';
-                case 'repeatPassword': return 'Lozinke se ne poklapaju';
+                case 'username': return 'Minimum 3 characters';
+                case 'email': return 'Invalid email format';
+                case 'password': return 'Minimum 6 characters';
+                case 'repeatPassword': return 'Passwords do not match';
                 default: return '';
             }
         }
@@ -47,7 +47,7 @@ function Register({ title = "Registracija" }) {
 
         if (!Object.values(validate).every(Boolean)) {
             // Show error toast if validation fails
-            toast.error("Pokušaj registracije nije uspio. Provjerite polja!");
+            toast.error("Registration failed. Please check all fields!");
             return;
         }
 
@@ -65,14 +65,14 @@ function Register({ title = "Registracija" }) {
             const data = await res.json();
             if (res.ok) {
                 setTimeout(() => {
-                    toast.success('Registracija uspješna! Preusmjeravanje na login...');
+                    toast.success('Registration successful! Redirecting to login...');
                     setTimeout(() => navigate('/login'), 1500);
                 }, 500);
             } else {
-                toast.error(data.message || 'Greška pri registraciji.');
+                toast.error(data.message || 'Error during registration.');
             }
         } catch (err) {
-            toast.error('Server greška.');
+            toast.error('Server error.');
         }
     };
 
@@ -94,7 +94,7 @@ function Register({ title = "Registracija" }) {
                         return (
                             <div className="mb-3" key={field}>
                                 <div className="d-flex justify-content-between align-items-center mb-1">
-                                    <label className="form-label mb-0 text-capitalize">{field === 'repeatPassword' ? 'Ponovi lozinku' : field}</label>
+                                    <label className="form-label mb-0 text-capitalize">{field === 'repeatPassword' ? 'Repeat Password' : field}</label>
                                     <small
                                         className={`ms-auto text-end ${showError(field) ? 'text-danger' : showSuccess(field) ? 'text-success' : 'text-muted'}`}
                                         style={{ minHeight: '1rem', fontSize: '0.8rem' }}
@@ -130,10 +130,10 @@ function Register({ title = "Registracija" }) {
                             onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
                         />
                         <label className="form-check-label" htmlFor="isActive">
-                            {formData.isActive ? 'Korisnik će biti AKTIVAN' : 'Korisnik će biti NEAKTIVAN'}
+                            {formData.isActive ? 'User will be ACTIVE' : 'User will be INACTIVE'}
                         </label>
                     </div>
-                    <button type="submit" className="btn btn-success text-end">Registruj se</button>
+                    <button type="submit" className="btn btn-success text-end">Register</button>
                 </form>
 
                 {/* Tost container for displaying notifications */}

@@ -15,7 +15,7 @@ function Login() {
     const { setUser } = useAuth();
 
     useEffect(() => {
-        // Provjeravamo da li je korisnik već prijavljen dohvatanje tokena iz sessionStorage
+        // Check if user is already logged in by fetching token from sessionStorage
         const token = sessionStorage.getItem("token");
         if (token) {
             const user = getCurrentUser();
@@ -41,20 +41,20 @@ function Login() {
             sessionStorage.setItem("token", response.data.token);
             const user = getCurrentUser();
             setUser(user);
-            toast.success("Uspješan login! Preusmjeravanje...");
-            // Nakon male pauze, čitamo rolu i preusmjeravamo korisnika
+            toast.success("Login  successfull! Redirecting...");
+            // After a short delay, we read the role and redirect the user
             setTimeout(() => {
                 if (user.role === "Admin") {
                     navigate("/admin-dashboard");
                 } else if (user.role === "User") {
                     navigate("/user-dashboard");
                 } else {
-                    toast.error("Nepoznata rola!");
+                    toast.error("Unknown role!");
                 }
                 window.location.reload();
             }, 1500);
         } catch (err) {
-            toast.error(err.response.data.message || "Greška pri loginu.");
+            toast.error(err.response.data.message || "Error during login.");
         }
     };
 
@@ -74,7 +74,7 @@ function Login() {
                                 type="text"
                                 className="form-control"
                                 id="username"
-                                placeholder="Unesi korisničko ime"
+                                placeholder="Enter username"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 required
@@ -84,7 +84,7 @@ function Login() {
                         <div className="mb-3">
                             <div className="d-flex justify-content-between align-items-center mb-1">
                                 <label htmlFor="password" className="form-label mb-0">
-                                    Lozinka
+                                    Password
                                 </label>
                             </div>
                             <div className="input-group">
@@ -92,7 +92,7 @@ function Login() {
                                     type={showPassword ? "text" : "password"}
                                     className="form-control"
                                     id="password"
-                                    placeholder="Unesi lozinku"
+                                    placeholder="Enter password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
@@ -108,8 +108,8 @@ function Login() {
                         </div>
 
                     <button type="submit" className="btn btn-primary">
-                            Prijava
-                        </button>
+                        Login
+                    </button>
                     </form>
 
                     <ToastContainer

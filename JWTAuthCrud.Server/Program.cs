@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
-        builder => builder.WithOrigins("https://localhost:51106") // frontend URL
+        builder => builder.WithOrigins("https://localhost:51107") // frontend URL
                           .AllowAnyMethod()
                           .AllowAnyHeader()
                           .AllowCredentials());

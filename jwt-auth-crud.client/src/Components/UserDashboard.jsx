@@ -18,7 +18,7 @@ function UserDashboard() {
 
     const fetchUserData = async (token) => {
         if (!token) {
-            setError('Token nije pronađen.');
+            setError('Token not found.');
             return;
         }
         try {
@@ -30,9 +30,9 @@ function UserDashboard() {
             setUserData(response.data);
         } catch (err) {
             if (err.response) {
-                setError(`Greška: ${err.response.status} - ${err.response.data.message || 'Pogreška prilikom učitavanja podataka.'}`);
+                setError(`Error: ${err.response.status} - ${err.response.data.message || 'Error loading user data.'}`);
             } else {
-                setError('Pogreška prilikom povezivanja sa serverom.');
+                setError('Error connecting to server.');
             }
         }
     };
@@ -44,15 +44,15 @@ function UserDashboard() {
                 {error && <div className="alert alert-danger">{error}</div>}
                 {userData ? (
                     <div>
-                        <p><strong>Korisnik:</strong> {userData.username}</p>
+                        <p><strong>User:</strong> {userData.username}</p>
                         <p><strong>Email:</strong> {userData.email}</p>
-                        <p><strong>Uloga:</strong> {userData.role}</p>
-                        <p><strong>Datum kreiranja:</strong> {userData.created}</p>
-                        <p><strong>Stanje:</strong> {userData.active ? 'NEAKTIVAN' : 'AKTIVAN'}</p>
+                        <p><strong>Role:</strong> {userData.role}</p>
+                        <p><strong>Created Date:</strong> {userData.created}</p>
+                        <p><strong>Status:</strong> {userData.active ? 'ACTIVE' : 'INACTIVE'}</p>
 
                     </div>
                 ) : (
-                    <p>Učitavanje korisničkih podataka...</p>
+                    <p>Loading user data...</p>
                 )}
             </div>
         </div>

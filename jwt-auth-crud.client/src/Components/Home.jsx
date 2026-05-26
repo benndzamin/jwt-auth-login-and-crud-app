@@ -17,18 +17,18 @@ function Home() {
     <div className="container text-center">
       <div className="card shadow-lg p-5 rounded bg-light">
         <h1 className="display-4 fw-bold mb-4 text-primary">
-          Dobrodošli u <span className="text-dark">ImelApp</span>
+          Welcome to <span className="text-dark">crud & login app</span>
         </h1>
-        <p className="lead mb-3">Zadaci za prijem kandidata</p>
+        <p className="lead mb-3">Candidate Intake Tasks</p>
         <p className="text-muted mb-4">
-          <strong className="text-secondary">Fullstack programer</strong> <br />
+          <strong className="text-secondary">Fullstack Developer</strong> <br />
           <small>(ASP.NET Core & React.js & DevExpress)</small>
         </p>
         <button
           className="btn btn-outline-primary btn-lg px-5 mx-auto"
           onClick={() => navigate("/login")}
         >
-          Počni
+          Get Started
         </button>
       </div>
     </div>
