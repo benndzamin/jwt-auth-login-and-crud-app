@@ -1,0 +1,16 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "jwt-auth-crud.client\\jwt-auth-crud.client.esproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "JWTAuthCrud.Server\\JWTAuthCrud.Server.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
+      }
+    ]
+  }
+]
