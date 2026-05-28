@@ -70,7 +70,7 @@ function Navbar() {
     return (
         <nav className="navbar navbar-expand-lg navbar-dark bg-primary bg-gradient fixed-top">
             <div className="container">
-                <a className="navbar-brand" href="/">ImelApp</a>
+                <a className="navbar-brand" href="/">JWT auth, login & CRUD app</a>
                 <div className="ms-auto">
                     {isLoggedIn || authUser ? (
                         <>
