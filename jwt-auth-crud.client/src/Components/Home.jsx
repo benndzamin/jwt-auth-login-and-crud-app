@@ -17,7 +17,7 @@ function Home() {
     <div className="container text-center">
       <div className="card shadow-lg p-5 rounded bg-light">
         <h1 className="display-4 fw-bold mb-4 text-primary">
-          Welcome to <span className="text-dark">crud & login app</span>
+          Welcome to <span className="text-dark"> JWT auth, Login & CRUD App</span>
         </h1>
         <p className="lead mb-3">Candidate Intake Tasks</p>
         <p className="text-muted mb-4">

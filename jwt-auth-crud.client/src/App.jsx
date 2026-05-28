@@ -36,7 +36,7 @@ function App() {
 
             {/* Footer */}
             <footer className="bg-light text-center py-3 mt-auto w-100 fixed-bottom">
-                <p>&copy; 2025 ImelApp. All Rights Reserved.</p>
+                <p>&copy; 2025 JWT auth, Login & CRUD App. All Rights Reserved.</p>
             </footer>
         </div>
     );
