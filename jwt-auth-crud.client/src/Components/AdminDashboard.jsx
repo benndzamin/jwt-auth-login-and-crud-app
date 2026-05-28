@@ -141,7 +141,7 @@ function AdminDashboard() {
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
-        initialState: { pagination: { pageSize: 7 } }, // Sets default pagination size to 10 rows
+        initialState: { pagination: { pageSize: 5 } }, // Sets default pagination size to 5 rows
     });
 
     return (

@@ -11,6 +11,7 @@ function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // 1. Stanje za loader
     const navigate = useNavigate();
     const { setUser } = useAuth();
 
@@ -31,6 +32,7 @@ function Login() {
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        setIsLoading(true); // 2. Čim klikneš na dugme, pali se loader
 
         try {
             const response = await axios.post(`${import.meta.env.VITE_API_URL}/login`, {
@@ -41,7 +43,8 @@ function Login() {
             sessionStorage.setItem("token", response.data.token);
             const user = getCurrentUser();
             setUser(user);
-            toast.success("Login  successfull! Redirecting...");
+            toast.success("Login successful! Redirecting...");
+
             // After a short delay, we read the role and redirect the user
             setTimeout(() => {
                 if (user.role === "Admin") {
@@ -50,79 +53,98 @@ function Login() {
                     navigate("/user-dashboard");
                 } else {
                     toast.error("Unknown role!");
+                    setIsLoading(false); // Gasi loader ako je uloga nepoznata
                 }
                 window.location.reload();
             }, 1500);
         } catch (err) {
-            toast.error(err.response.data.message || "Error during login.");
+            // Ako api baci grešku, ispiši je i obavezno ugasi loader da se dugme odmrzne
+            toast.error(err.response?.data?.message || "Error during login.");
+            setIsLoading(false);
         }
     };
 
     return (
-            <div className="container text-end" style={{ width: "500px", margin: "auto" }}>
-                <div className="card shadow p-4 bg-light">
-                    <h2 className="text-center mb-4">Login</h2>
+        <div className="container text-end" style={{ width: "500px", margin: "auto" }}>
+            <div className="card shadow p-4 bg-light">
+                <h2 className="text-center mb-4">Login</h2>
 
-                    <form onSubmit={handleLogin}>
-                        <div className="mb-3">
-                            <div className="d-flex justify-content-between align-items-center mb-1">
-                                <label htmlFor="username" className="form-label mb-0">
-                                    Username
-                                </label>
-                            </div>
+                <form onSubmit={handleLogin}>
+                    <div className="mb-3">
+                        <div className="d-flex justify-content-between align-items-center mb-1">
+                            <label htmlFor="username" className="form-label mb-0">
+                                Username
+                            </label>
+                        </div>
+                        <input
+                            type="text"
+                            className="form-control"
+                            id="username"
+                            placeholder="Enter username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className="mb-3">
+                        <div className="d-flex justify-content-between align-items-center mb-1">
+                            <label htmlFor="password" className="form-label mb-0">
+                                Password
+                            </label>
+                        </div>
+                        <div className="input-group">
                             <input
-                                type="text"
+                                type={showPassword ? "text" : "password"}
                                 className="form-control"
-                                id="username"
-                                placeholder="Enter username"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
+                                id="password"
+                                placeholder="Enter password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 required
                             />
+                            <span
+                                className="input-group-text"
+                                onClick={() => setShowPassword(!showPassword)}
+                                style={{ cursor: "pointer" }}
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </span>
                         </div>
+                    </div>
 
-                        <div className="mb-3">
-                            <div className="d-flex justify-content-between align-items-center mb-1">
-                                <label htmlFor="password" className="form-label mb-0">
-                                    Password
-                                </label>
-                            </div>
-                            <div className="input-group">
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    className="form-control"
-                                    id="password"
-                                    placeholder="Enter password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                />
+                    {/* 3. Dinamičko dugme sa loaderom i disabled stanjem */}
+                    <button
+                        type="submit"
+                        className="btn btn-primary d-inline-flex align-items-center"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <>
                                 <span
-                                    className="input-group-text"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    style={{ cursor: "pointer" }}
-                                >
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </span>
-                            </div>
-                        </div>
-
-                    <button type="submit" className="btn btn-primary">
-                        Login
+                                    className="spinner-border spinner-border-sm me-2"
+                                    role="status"
+                                    aria-hidden="true"
+                                ></span>
+                                Logging in...
+                            </>
+                        ) : (
+                            "Login"
+                        )}
                     </button>
-                    </form>
+                </form>
 
-                    <ToastContainer
-                        position="top-right"
-                        autoClose={4000}
-                        hideProgressBar
-                        closeOnClick
-                        pauseOnHover
-                        draggable
-                        theme="colored"
-                    />
-                </div>
+                <ToastContainer
+                    position="top-right"
+                    autoClose={4000}
+                    hideProgressBar
+                    closeOnClick
+                    pauseOnHover
+                    draggable
+                    theme="colored"
+                />
             </div>
+        </div>
     );
 }
 
